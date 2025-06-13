@@ -1,0 +1,5 @@
+documentation/createSertifacats
+certs/openssl.cnf
+certs/server.crt
+certs/server.key
+.env

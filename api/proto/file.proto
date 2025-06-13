@@ -1,0 +1,26 @@
+syntax = "proto3";
+
+package apigprc;
+
+option go_package = "github.com/Part001-R/grpcs/pkg/api";
+
+service servSrv {
+  
+    rpc CurTime (TimeRequest) returns (TimeResponse) {}
+ 
+    rpc ConcatStr (stream TimeResponse) returns (ConcatStrResponse) {}
+}
+
+message TimeRequest {
+    string strReq = 1;
+}
+message TimeResponse {
+    string strResp = 1;
+}
+
+message ConcatStrRequest {
+    string strReq = 1;
+}
+message ConcatStrResponse {
+    string strReq = 1;
+}
