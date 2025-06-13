@@ -6,16 +6,15 @@ import (
 	"io"
 	"log"
 	"net"
+	"os"
 	"strings" // Импортируем пакет strings для конкатенации
 	"time"
 
 	pb "github.com/Part001-R/grpcs/pkg/api" // Убедитесь, что пакетный путь правильный
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
-)
 
-const (
-	ipAndPort = ":50100"
+	"github.com/joho/godotenv"
 )
 
 type server struct {
@@ -24,11 +23,17 @@ type server struct {
 
 func main() {
 
-	creds, err := credentials.NewServerTLSFromFile("certs/server.crt", "certs/server.key")
+	err := godotenv.Load(".env")
 	if err != nil {
-		log.Fatalf("Fault load sertofacats TLS: %v", err)
+		log.Fatal("fault read env file")
 	}
 
+	creds, err := credentials.NewServerTLSFromFile(os.Getenv("PATH_PUBLIC_KEY"), os.Getenv("PATH_PRIVATE_KEY"))
+	if err != nil {
+		log.Fatalf("Fault load sertificats TLS: %v", err)
+	}
+
+	ipAndPort := os.Getenv("PORT")
 	listener, err := net.Listen("tcp", ipAndPort)
 	if err != nil {
 		log.Fatalf("Fault create listener tcp port %s: %v", ipAndPort, err)
@@ -47,6 +52,7 @@ func main() {
 // Handler - Unary Current time server
 func (s *server) CurTime(ctx context.Context, req *pb.TimeRequest) (*pb.TimeResponse, error) {
 	rxStr := req.GetStrReq()
+	log.Printf("Recive request time server: %s", rxStr)
 
 	if rxStr == "time" {
 		tn := time.Now().Format("01-02-2006 15:04:05")
@@ -58,23 +64,23 @@ func (s *server) CurTime(ctx context.Context, req *pb.TimeRequest) (*pb.TimeResp
 
 // Handler - Client-streaming method for string concatenation
 func (s *server) ConcatStr(stream pb.ServSrv_ConcatStrServer) error {
-	log.Println("Recieve client stream for string concatenation")
 	var receivedStrings []string
 
 	for {
 		req, err := stream.Recv()
 
 		if err == io.EOF {
-			log.Println("Client stream for concatenation finished")
 			concatenatedString := strings.Join(receivedStrings, " ")
+			log.Printf("Recive slice: %v\n", receivedStrings)
+			log.Printf("Result concatenation: %s\n", concatenatedString)
 			return stream.SendAndClose(&pb.ConcatStrResponse{StrReq: concatenatedString})
 		}
-
 		if err != nil {
 			log.Printf("Fault recieve stream message for concatenation: %v", err)
 			return err
 		}
-		receivedStrings = append(receivedStrings, req.GetStrResp())
-		log.Printf("Recieve string part from ConcatStrResponse: %s", req.GetStrResp())
+
+		rxStr := req.GetStrResp()
+		receivedStrings = append(receivedStrings, rxStr)
 	}
 }

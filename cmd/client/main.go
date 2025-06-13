@@ -16,10 +16,6 @@ import (
 	"github.com/joho/godotenv"
 )
 
-const (
-	address = "localhost:50100"
-)
-
 func main() {
 	err := godotenv.Load(".env")
 	if err != nil {
@@ -37,6 +33,7 @@ func main() {
 	creds := credentials.NewClientTLSFromCert(pool, "")
 
 	// Connecting server
+	address := os.Getenv("PORT")
 	conn, err := grpc.NewClient(address, grpc.WithTransportCredentials(creds))
 	if err != nil {
 		log.Fatalf("Fault connect server: %v", err)
